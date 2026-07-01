@@ -1,0 +1,6 @@
+{
+  "name": "장애인 평생학습 강사 협회",
+  "description": "다름을 잇는 공감플러스+, 경기도 연천군 장애인 평생학습 강사 협회의 공식 웹사이트입니다. AAC 마음언어 카드 및 맞춤형 평생학습 교육과정을 소개합니다.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
