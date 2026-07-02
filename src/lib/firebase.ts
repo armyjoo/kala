@@ -114,3 +114,30 @@ export const getAllUsers = async () => {
   const querySnapshot = await getDocs(usersQuery);
   return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 };
+
+import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+// db 초기화 코드가 윗부분에 이미 존재할 것입니다. (const db = getFirestore(app); 등)
+
+// ... 기존 코드들 ...
+
+/**
+ * 전체 유저 목록을 가져오는 함수
+ */
+export const getAllUsers = async () => {
+  try {
+    const usersRef = collection(db, 'users');
+    // 필요한 경우 가입일순(signUpUpdate) 등으로 정렬할 수 있습니다.
+    const q = query(usersRef, orderBy('signUpUpdate', 'desc')); 
+    const querySnapshot = await getDocs(q);
+    
+    const users = querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+    
+    return users;
+  } catch (error) {
+    console.error("유저 목록을 가져오는 중 오류 발생:", error);
+    throw error;
+  }
+};
