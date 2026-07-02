@@ -34,7 +34,7 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 
 // 로그인 함수
-export const logIn = async (email: string, password: string) => {
+export const login = async (email: string, password: string) => {
   const userCredential = await signInWithEmailAndPassword(auth, email, password);
   const user = userCredential.user;
   const userDoc = await getDoc(doc(db, 'users', user.uid));
