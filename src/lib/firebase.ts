@@ -108,36 +108,28 @@ export const getNoticePosts = async () => {
   return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 };
 
-// 전체 회원 목록 조회 함수 (관리자 페이지 연동용)
-export const getAllUsers = async () => {
-  const usersQuery = query(collection(db, 'users'));
-  const querySnapshot = await getDocs(usersQuery);
-  return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-};
-
-import { collection, getDocs, query, orderBy } from 'firebase/firestore';
-// db 초기화 코드가 윗부분에 이미 존재할 것입니다. (const db = getFirestore(app); 등)
-
-// ... 기존 코드들 ...
-
 /**
- * 전체 유저 목록을 가져오는 함수
+ * 전체 회원 목록 조회 함수 (관리자 페이지 연동용)
+ * 에러 방지를 위해 가입일순 정렬(orderBy)과 안전하게 데이터를 가져오기 위한 try-catch 문을 조합했습니다.
  */
 export const getAllUsers = async () => {
   try {
     const usersRef = collection(db, 'users');
-    // 필요한 경우 가입일순(signUpUpdate) 등으로 정렬할 수 있습니다.
-    const q = query(usersRef, orderBy('signUpUpdate', 'desc')); 
+    // 회원 정보를 가입일(signUpDate) 기준으로 내림차순 정렬하여 가져옵니다.
+    const q = query(usersRef, orderBy('signUpDate', 'desc')); 
     const querySnapshot = await getDocs(q);
     
-    const users = querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
+    return querySnapshot.docs.map(doc => ({ 
+      id: doc.id, 
+      ...doc.data() 
     }));
-    
-    return users;
   } catch (error) {
-    console.error("유저 목록을 가져오는 중 오류 발생:", error);
+    console.error("전체 유저 목록을 가져오는 중 오류 발생:", error);
+    // 만약 데이터베이스의 기존 데이터 필드명 차이로 정렬(orderBy) 오류가 난다면, 
+    // 아래 주석 처리된 일반 query 코드로 변경해서 시도해 보세요.
+    // const q = query(collection(db, 'users'));
+    // const querySnapshot = await getDocs(q);
+    // return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     throw error;
   }
 };
