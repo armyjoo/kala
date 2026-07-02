@@ -107,3 +107,10 @@ export const getNoticePosts = async () => {
   const querySnapshot = await getDocs(noticeQuery);
   return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 };
+
+// 전체 회원 목록 조회 함수 (관리자 페이지 연동용)
+export const getAllUsers = async () => {
+  const usersQuery = query(collection(db, 'users'));
+  const querySnapshot = await getDocs(usersQuery);
+  return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+};
