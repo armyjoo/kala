@@ -244,7 +244,7 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
       };
 
       // 1. Firebase 전송
-      const newMember = await signUp(signUpPayload);
+      const newMember = await signUp(signUpEmail, signUpPassword, signUpName, signUpRole);
 
       // 2. 로컬 테스트 DB 동기화 (결함 해결)
       const db = getMembersDb();
