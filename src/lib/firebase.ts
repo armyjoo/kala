@@ -19,15 +19,16 @@ import {
 } from 'firebase/firestore';
 
 // 제공해주신 실제 Firebase 설정 값 연동
-const firebaseConfig = {
-  apiKey: "AIzaSyC-abVlm29DlNXmR-dzh3h6nATB4RO5wcc",
-  authDomain: "festive-basis-ldpgw.firebaseapp.com",
-  projectId: "festive-basis-ldpgw",
-  storageBucket: "festive-basis-ldpgw.firebasestorage.app",
-  messagingSenderId: "230367417648",
-  appId: "1:230367417648:web:d91ef08df3db52139924f5"
+const firebaseConfig = { 
+  apiKey : "AIzaSyDMhpA0uHvlYkgLNMlOpHIwJK0RMuz0qIM" , 
+  authDomain : "kala-hompage.firebaseapp.com" , 
+  databaseURL : "https://kala-hompage-default-rtdb.firebaseio.com" , 
+  projectId : "kala-hompage" , 
+  storageBucket : "kala-hompage.firebasestorage.app" , 
+  messagingSenderId : "207171473116" , 
+  appId : "1:207171473116:web:de24c14efa57a3dbf5ae19" , 
+  measurementId : "G-N4JFXNHPFS" 
 };
-
 const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
