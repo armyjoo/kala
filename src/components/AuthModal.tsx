@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { X, Lock, Mail, User, ShieldCheck, Settings, Users, Calendar, Award, Camera, Upload } from 'lucide-react';
+import React, { useState } from 'react';
+import { X, Lock, Mail, User, ShieldCheck, Calendar, Award, Camera, Upload } from 'lucide-react';
 import { signUp, login } from '../lib/firebase';
 
 interface AuthModalProps {
@@ -8,21 +8,9 @@ interface AuthModalProps {
   onLoginSuccess: (user: { name: string; role: '일반회원' | '강사' | '관리자' | '부관리자' }) => void;
 }
 
-interface Member {
-  id: string;
-  email: string;
-  password: string;
-  name: string;
-  birthDate: string;
-  role: '일반회원' | '강사' | '관리자' | '부관리자';
-  certificate: string;
-  photo?: string;
-  signUpDate: string;
-}
-
 export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModalProps) {
   const [isLogin, setIsLogin] = useState(true);
-  
+
   // Login input states
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
@@ -35,68 +23,33 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
   const [signUpBirth, setSignUpBirth] = useState('');
   const [signUpRole, setSignUpRole] = useState<'일반회원' | '강사'>('일반회원');
   const [signUpCertificate, setSignUpCertificate] = useState('');
-  const [signUpPhoto, setSignUpPhoto] = useState<string>(''); 
+  const [signUpPhoto, setSignUpPhoto] = useState<string>('');
   const [photoError, setPhotoError] = useState('');
   const [signUpSuccess, setSignUpSuccess] = useState(false);
 
-  // Admin password alteration flow states
-  const [needsAdminPasswordChange, setNeedsAdminPasswordChange] = useState(false);
-  const [newAdminPassword, setNewAdminPassword] = useState('');
-  const [confirmAdminPassword, setConfirmAdminPassword] = useState('');
-
   if (!isOpen) return null;
 
-  const getMembersDb = (): Member[] => {
-    const db = localStorage.getItem('gonggam_members_db');
-    if (db) {
-      try {
-        return JSON.parse(db);
-      } catch (e) {
-        return SYSTEM_INITIAL_MEMBERS;
-      }
-    }
-    return SYSTEM_INITIAL_MEMBERS;
-  };
-
-  // Login handler with LocalStorage Fallback
+  // Firebase 로그인 처리
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError('');
 
-const emailInput = loginEmail.trim();
+    const emailInput = loginEmail.trim();
 
-try {
-  const user = await login(emailInput, loginPassword);
-  if (user) {
-    onLoginSuccess({ name: user.name, role: user.role });
-    onClose();
-  } else {
-    setLoginError('회원 정보를 찾을 수 없습니다.');
-  }
-} catch (err: any) {
-  setLoginError(err.message || '아이디(이메일) 또는 비밀번호가 올바르지 않습니다.');
-}
-  };
-
-
-    const db = getMembersDb();
-    const updated = db.map(m => {
-      if (m.email === 'admin') {
-        return { ...m, password: newAdminPassword };
+    try {
+      const user = await login(emailInput, loginPassword);
+      if (user) {
+        onLoginSuccess({ name: user.name, role: user.role });
+        onClose();
+      } else {
+        setLoginError('회원 정보를 찾을 수 없습니다.');
       }
-      return m;
-    });
-
-    localStorage.setItem('gonggam_members_db', JSON.stringify(updated));
-    alert('🎉 대표관리자의 비밀번호가 안전하게 교체되었습니다! 즉시 로그인합니다.');
-    
-    onLoginSuccess({ name: '대표관리자 주명훈', role: '관리자' });
-    setNeedsAdminPasswordChange(false);
-    setNewAdminPassword('');
-    setConfirmAdminPassword('');
-    onClose();
+    } catch (err: any) {
+      setLoginError(err.message || '아이디(이메일) 또는 비밀번호가 올바르지 않습니다.');
+    }
   };
 
+  // 사진 업로드 핸들러
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPhotoError('');
     if (e.target.files && e.target.files[0]) {
@@ -114,6 +67,7 @@ try {
     }
   };
 
+  // 테스트용 사진 자동 입력
   const applyMockPhoto = () => {
     const sampleAvatars = [
       'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=200&h=200',
@@ -125,7 +79,7 @@ try {
     setPhotoError('');
   };
 
-  // Sign Up handler with LocalStorage Synchronization
+  // Firebase 회원가입 처리
   const handleSignUpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setPhotoError('');
@@ -136,30 +90,10 @@ try {
     }
 
     try {
-      const signUpPayload = {
-        email: signUpEmail.trim(),
-        password: signUpPassword,
-        name: signUpName.trim(),
-        birthDate: signUpBirth,
-        role: signUpRole,
-        certificate: signUpCertificate.trim(),
-        photo: signUpRole === '강사' ? signUpPhoto : undefined
-      };
+      // 1. Firebase 가입 전송
+      const newMember = await signUp(signUpEmail.trim(), signUpPassword, signUpName.trim(), signUpRole);
 
-      // 1. Firebase 전송
-      const newMember = await signUp(signUpEmail, signUpPassword, signUpName, signUpRole);
-
-      // 2. 로컬 테스트 DB 동기화 (결함 해결)
-      const db = getMembersDb();
-      const localNewMember: Member = {
-        id: `mem_${Date.now()}`,
-        ...signUpPayload,
-        signUpDate: new Date().toISOString().split('T')[0]
-      };
-      db.push(localNewMember);
-      localStorage.setItem('gonggam_members_db', JSON.stringify(db));
-
-      // 폼 초기화
+      // 2. 폼 초기화
       const targetEmail = newMember?.email || signUpEmail.trim();
       setSignUpEmail('');
       setSignUpPassword('');
@@ -167,9 +101,9 @@ try {
       setSignUpBirth('');
       setSignUpCertificate('');
       setSignUpPhoto('');
-      
+
       setSignUpSuccess(true);
-      
+
       setTimeout(() => {
         setSignUpSuccess(false);
         setIsLogin(true);
@@ -185,8 +119,8 @@ try {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
       <div className="relative w-full max-w-lg overflow-hidden rounded-3xl bg-white shadow-2xl border border-slate-100 animate-zoom-in max-h-[92vh] flex flex-col">
         <div className="absolute top-0 left-0 w-full h-2.5 bg-gradient-to-r from-sky-400 via-sky-300 to-orange-400 shrink-0" />
-        
-        {/* Header (고정) */}
+
+        {/* Header */}
         <div className="p-6 md:p-8 pb-4 flex items-center justify-between border-b border-slate-100 shrink-0">
           <div>
             <span className="block text-[10px] font-extrabold text-sky-500 tracking-wider font-sans">장애인 평생학습 교정망</span>
@@ -194,7 +128,7 @@ try {
               {isLogin ? '공감플러스 통합로그인' : '협회 신규회원 통합가입'}
             </h3>
           </div>
-          <button 
+          <button
             onClick={onClose}
             className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors cursor-pointer"
           >
@@ -202,7 +136,7 @@ try {
           </button>
         </div>
 
-        {/* 내용 영역 (이곳만 독립적으로 스크롤 발생 - flex-1 부여) */}
+        {/* Body */}
         <div className="flex-1 overflow-y-auto px-6 md:px-8 py-4 space-y-5">
           {signUpSuccess && (
             <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl font-sans text-xs space-y-1 animate-fade-in">
@@ -212,117 +146,56 @@ try {
           )}
 
           {isLogin ? (
-            needsAdminPasswordChange ? (
-              <form onSubmit={handleAdminPasswordChangeSubmit} className="space-y-4">
-                <div className="p-4 bg-orange-50 border border-orange-200 text-orange-950 rounded-2xl text-xs font-sans font-bold flex flex-col gap-1.5">
-                  <div className="flex items-center gap-2">
-                    <span className="text-base">⚠️</span>
-                    <span className="text-[13px] font-extrabold">관리자 비밀번호 초기화 안내</span>
-                  </div>
-                  <p className="text-slate-600 font-medium leading-relaxed">
-                    최초 계정인 <code className="bg-white/80 px-1 py-0.5 rounded">admin</code>의 기본 비밀번호가 감지되었습니다. 
-                    시스템의 보안을 위해 <strong>새비밀번호를 즉시 설정</strong>해 주십시오.
-                  </p>
+            <form onSubmit={handleLoginSubmit} className="space-y-4">
+              {loginError && (
+                <div className="p-3.5 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-xs font-sans font-bold flex items-center gap-1.5 animate-pulse">
+                  <span className="text-base">⚠️</span>
+                  <span>{loginError}</span>
                 </div>
+              )}
 
-                <div className="space-y-1">
-                  <label className="block text-xs font-black text-slate-400 tracking-wider uppercase font-sans">새 비밀번호 입력</label>
-                  <div className="relative">
-                    <Lock className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
-                    <input
-                      type="password"
-                      required
-                      placeholder="안전하고 새로운 비밀번호"
-                      value={newAdminPassword}
-                      onChange={(e) => setNewAdminPassword(e.target.value)}
-                      className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 py-2.5 pl-11 pr-4 text-sm outline-none focus:border-orange-400 focus:bg-white transition-all font-sans"
-                    />
-                  </div>
+              <div className="space-y-1">
+                <label className="block text-xs font-black text-slate-400 tracking-wider uppercase font-sans">이메일 주소</label>
+                <div className="relative">
+                  <Mail className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+                  <input
+                    type="email"
+                    required
+                    placeholder="example@gonggam.com"
+                    value={loginEmail}
+                    onChange={(e) => setLoginEmail(e.target.value)}
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 py-2.5 pl-11 pr-4 text-sm outline-none focus:border-sky-400 focus:bg-white transition-all font-sans"
+                  />
                 </div>
+              </div>
 
-                <div className="space-y-1">
-                  <label className="block text-xs font-black text-slate-400 tracking-wider uppercase font-sans">새 비밀번호 확인</label>
-                  <div className="relative">
-                    <Lock className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
-                    <input
-                      type="password"
-                      required
-                      placeholder="비밀번호 확인"
-                      value={confirmAdminPassword}
-                      onChange={(e) => setConfirmAdminPassword(e.target.value)}
-                      className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 py-2.5 pl-11 pr-4 text-sm outline-none focus:border-orange-400 focus:bg-white transition-all font-sans"
-                    />
-                  </div>
+              <div className="space-y-1">
+                <label className="block text-xs font-black text-slate-400 tracking-wider uppercase font-sans">접속 비밀번호</label>
+                <div className="relative">
+                  <Lock className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+                  <input
+                    type="password"
+                    required
+                    placeholder="••••••••"
+                    value={loginPassword}
+                    onChange={(e) => setLoginPassword(e.target.value)}
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 py-2.5 pl-11 pr-4 text-sm outline-none focus:border-sky-400 focus:bg-white transition-all font-sans"
+                  />
                 </div>
+              </div>
 
-                <div className="flex gap-2 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setNeedsAdminPasswordChange(false)}
-                    className="flex-1 rounded-2xl border border-slate-200 py-3 text-sm font-bold text-slate-500 hover:bg-slate-50 cursor-pointer"
-                  >
-                    이전으로
-                  </button>
-                  <button
-                    type="submit"
-                    className="flex-1 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 py-3 text-sm font-black text-white shadow-md hover:opacity-95 transition-all font-sans cursor-pointer"
-                  >
-                    비밀번호 변경 및 관리자 시작
-                  </button>
-                </div>
-              </form>
-            ) : (
-              <form onSubmit={handleLoginSubmit} className="space-y-4">
-                {loginError && (
-                  <div className="p-3.5 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-xs font-sans font-bold flex items-center gap-1.5 animate-pulse">
-                    <span className="text-base">⚠️</span>
-                    <span>{loginError}</span>
-                  </div>
-                )}
-
-                <div className="space-y-1">
-                  <label className="block text-xs font-black text-slate-400 tracking-wider uppercase font-sans">아이디 (이메일 주소 / admin)</label>
-                  <div className="relative">
-                    <Mail className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
-                    <input
-                      type="text"
-                      required
-                      placeholder="example@gonggam.com 또는 admin"
-                      value={loginEmail}
-                      onChange={(e) => setLoginEmail(e.target.value)}
-                      className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 py-2.5 pl-11 pr-4 text-sm outline-none focus:border-sky-400 focus:bg-white transition-all font-sans"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="block text-xs font-black text-slate-400 tracking-wider uppercase font-sans">접속 비밀번호</label>
-                  <div className="relative">
-                    <Lock className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
-                    <input
-                      type="password"
-                      required
-                      placeholder="••••••••"
-                      value={loginPassword}
-                      onChange={(e) => setLoginPassword(e.target.value)}
-                      className="w-full rounded-2xl border border-slate-200 bg-slate-50/50 py-2.5 pl-11 pr-4 text-sm outline-none focus:border-sky-400 focus:bg-white transition-all font-sans"
-                    />
-                  </div>
-                </div>
-
-                <button
-                  type="submit"
-                  className="w-full rounded-2xl bg-gradient-to-r from-sky-500 to-sky-600 py-3 text-sm font-black text-white shadow-md hover:opacity-95 transition-all font-sans cursor-pointer mt-4"
-                >
-                  안전인증 로그인접속
-                </button>
-              </form>
-            )
+              <button
+                type="submit"
+                className="w-full rounded-2xl bg-gradient-to-r from-sky-500 to-sky-600 py-3 text-sm font-black text-white shadow-md hover:opacity-95 transition-all font-sans cursor-pointer mt-4"
+              >
+                안전인증 로그인접속
+              </button>
+            </form>
           ) : (
             <form onSubmit={handleSignUpSubmit} className="space-y-4">
               <div>
                 <label className="block text-xs font-black text-slate-400 tracking-wider uppercase font-sans mb-1">
-                  회원 종류 선택 <span className="text-orange-550 font-bold">*</span>
+                  회원 종류 선택 <span className="text-orange-500 font-bold">*</span>
                 </label>
                 <div className="grid grid-cols-2 gap-3 mb-4 font-sans">
                   <button
@@ -332,8 +205,8 @@ try {
                       setPhotoError('');
                     }}
                     className={`flex items-center justify-center gap-2 py-3 rounded-2xl border text-xs font-bold transition-all ${
-                      signUpRole === '일반회원' 
-                        ? 'border-orange-300 bg-orange-50/50 text-orange-700 font-black ring-1 ring-orange-300' 
+                      signUpRole === '일반회원'
+                        ? 'border-orange-300 bg-orange-50/50 text-orange-700 font-black ring-1 ring-orange-300'
                         : 'border-slate-200 bg-slate-50 text-slate-500'
                     }`}
                   >
@@ -347,8 +220,8 @@ try {
                       setPhotoError('');
                     }}
                     className={`flex items-center justify-center gap-2 py-3 rounded-2xl border text-xs font-bold transition-all ${
-                      signUpRole === '강사' 
-                        ? 'border-sky-400 bg-sky-50 text-sky-700 font-black ring-1 ring-sky-400' 
+                      signUpRole === '강사'
+                        ? 'border-sky-400 bg-sky-50 text-sky-700 font-black ring-1 ring-sky-400'
                         : 'border-slate-200 bg-slate-50 text-slate-500'
                     }`}
                   >
@@ -372,10 +245,10 @@ try {
 
                   <div className="flex items-center gap-4 w-full">
                     {signUpPhoto ? (
-                      <div className="h-20 w-16 bg-slate-100 border border-slate-200 rounded-lg overflow-hidden shrink-0 shadow-3xs relative group">
-                        <img 
-                          src={signUpPhoto} 
-                          alt="반명함 원본" 
+                      <div className="h-20 w-16 bg-slate-100 border border-slate-200 rounded-lg overflow-hidden shrink-0 shadow-xs relative group">
+                        <img
+                          src={signUpPhoto}
+                          alt="반명함 원본"
                           referrerPolicy="no-referrer"
                           className="h-full w-full object-cover"
                         />
@@ -512,17 +385,16 @@ try {
           )}
         </div>
 
-        {/* 하단 토글 링크 영역 (고정) */}
+        {/* Footer */}
         <div className="p-6 text-center shrink-0 border-t border-slate-100 bg-slate-50/50">
           <button
             type="button"
             onClick={() => setIsLogin(!isLogin)}
-            className="text-xs text-slate-500 hover:text-sky-500 transition-colors font-sans underline"
+            className="text-xs text-slate-500 hover:text-sky-500 transition-colors font-sans underline cursor-pointer"
           >
             {isLogin ? '처음 방문하셨나요? 회원가입하기' : '이미 계정이 있으신가요? 로그인하기'}
           </button>
         </div>
-
       </div>
     </div>
   );
