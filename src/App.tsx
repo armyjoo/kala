@@ -155,7 +155,7 @@ export default function App() {
       {/* 20px Top Banner for Slogan Accentuation */}
       <div className="bg-gradient-to-r from-sky-500 via-sky-400 to-orange-400 text-white text-[11px] font-bold text-center py-1.5 px-4 tracking-wider flex items-center justify-center gap-1.5 font-sans">
         <Sparkles className="h-3 w-3 animate-pulse" />
-        <span>다름을 잇는 공감플러스+ &middot; 경기도 연천군 장애인 평생학습의 새로운 도약</span>
+        <span>다름을 잇는 공감+가치이음 &middot; 경기도 연천군 장애인 평생학습의 새로운 도약</span>
         <ArrowUpRight className="h-3.5 w-3.5 shrink-0" />
       </div>
 
@@ -184,7 +184,7 @@ export default function App() {
 
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight leading-tight">
               다름을 아름다운 <br />
-              대화로 잇는 <span className="text-sky-500 bg-sky-50 px-2 rounded-lg">공감플러스+</span>
+              대화로 잇는 <span className="text-sky-500 bg-sky-50 px-2 rounded-lg">공감+가치이음</span>
             </h2>
 
             <p className="text-sm md:text-base text-slate-500 leading-relaxed max-w-2xl mx-auto">
