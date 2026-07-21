@@ -13,7 +13,7 @@ export default function GreetingsSection() {
             인사말 · GREETINGS
           </span>
           <h2 className="mt-3 text-3xl md:text-4xl font-extrabold text-slate-800 tracking-tight">
-            다름을 잇는 공감플러스+
+            다름을 잇는 공감+가치이음
           </h2>
           <p className="mt-2 text-sm text-slate-400">
             소통의 장벽을 낮추고 배움의 평평한 터전을 가꿉니다
@@ -72,10 +72,10 @@ export default function GreetingsSection() {
           {/* Letter Foot / Signature */}
           <div className="mt-16 pt-10 border-t border-slate-100/80 text-center">
             <span className="block text-sm text-sky-600 font-sans tracking-widest font-black mb-3">
-              다름을 잇는 공감플러스
+              다름을 잇는 공감+가치이음
             </span>
             <h3 className="text-xl md:text-2xl font-black text-slate-800 tracking-tight">
-              장애인 평생학습 강사 협회 일동
+              장애인 평생학습 강사 협회 1기 일동
             </h3>
             
             {/* 1st-Generation Instructors Board */}
@@ -91,7 +91,7 @@ export default function GreetingsSection() {
                   { name: '윤수정', title: '전문강사', specialty: '포용 평생교육 강사' },
                   { name: '왕선미', title: '전문강사', specialty: '마음언어 촉각 놀이지도' },
                   { name: '조희정', title: '전문강사', specialty: '인지 재활 및 감각치료' },
-                  { name: '주명훈', title: '대표강사', specialty: '사회복지 & 평생학습 총괄', isLead: true },
+                  { name: '주명훈', title: '대표강사', specialty: 'AI디지털문해교육 & 평생학습 총괄', isLead: true },
                   { name: '주민철', title: '전문강사', specialty: '동반자적 자립 촉진' },
                   { name: '한미정', title: '전문강사', specialty: 'AAC 보완대체의사소통' }
                 ].map((inst) => (
@@ -127,7 +127,7 @@ export default function GreetingsSection() {
                   </svg>
                 </div>
                 <p className="text-[10px] text-slate-400 font-sans tracking-wide">
-                  장애인 평생학습 1기 전문 강사진 대표 주명훈 친필 서명 위임 날인
+                  장애인 평생학습 1기 전문 강사진 대표 주명훈 
                 </p>
               </div>
             </div>
