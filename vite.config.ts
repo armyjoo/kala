@@ -5,7 +5,7 @@ import { defineConfig } from 'vite';
 
 export default defineConfig(() => {
   return {
-    base: '/kala/', // ⭐ 깃허브 배포를 위한 기준 경로 설정
+    base: '/', // 👈 기존 '/kala/'를 '/'로 수정했습니다!
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
