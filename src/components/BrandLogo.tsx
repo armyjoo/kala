@@ -115,7 +115,7 @@ export default function BrandLogo({
           {/* Slogans */}
           <div className={`flex flex-col ${isVertical ? 'items-center' : 'items-start'} gap-0.5 mb-1`}>
             <span className={`text-[10px] md:text-xs font-semibold tracking-wider ${theme === 'dark' ? 'text-sky-400' : 'text-sky-600'}`}>
-              다름을 잇는 <span className={`font-black ${theme === 'dark' ? 'text-white' : 'text-orange-500'}`}>공감플러스+</span>
+              다름을 잇는 <span className={`font-black ${theme === 'dark' ? 'text-white' : 'text-orange-500'}`}>공감+가치이음</span>
             </span>
             <span className={`text-[8px] md:text-[10px] font-medium tracking-wide ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'} hidden sm:inline-block`}>
               Accessible Learning, Inclusive Future (모두가 배우고, 함께 성장하는 미래)
