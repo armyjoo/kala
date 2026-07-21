@@ -20,52 +20,6 @@ interface Member {
   signUpDate: string;
 }
 
-const SYSTEM_INITIAL_MEMBERS: Member[] = [
-  {
-    id: 'mem_admin',
-    email: 'admin',
-    password: 'admin',
-    name: '대표관리자 주명훈',
-    birthDate: '1981-12-05',
-    role: '관리자',
-    certificate: '사회복지사 1급, 평생교육사 1급',
-    signUpDate: '2026-06-01',
-    photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200&h=200'
-  },
-  {
-    id: 'mem_instructor_1',
-    email: 'instructor@gonggam.com',
-    password: 'instructor',
-    name: '이민수 전문강사',
-    birthDate: '1982-04-12',
-    role: '강사',
-    certificate: '미술치료사 1급, 마음언어 AAC 교육사 1급',
-    signUpDate: '2026-06-05',
-    photo: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200&h=200'
-  },
-  {
-    id: 'mem_subadmin',
-    email: 'sub@gonggam.com',
-    password: 'sub',
-    name: '박은혜 부관리자',
-    birthDate: '1988-08-20',
-    role: '부관리자',
-    certificate: '평생교육 프로그램 지도자 전격증',
-    signUpDate: '2026-06-08',
-    photo: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=200&h=200'
-  },
-  {
-    id: 'mem_member_1',
-    email: 'member@gonggam.com',
-    password: 'member',
-    name: '김성실 회원',
-    birthDate: '1990-12-05',
-    role: '일반회원',
-    certificate: '컴퓨터활용능력 2급',
-    signUpDate: '2026-06-10'
-  }
-];
-
 export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModalProps) {
   const [isLogin, setIsLogin] = useState(true);
   
@@ -90,34 +44,6 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
   const [newAdminPassword, setNewAdminPassword] = useState('');
   const [confirmAdminPassword, setConfirmAdminPassword] = useState('');
 
-  useEffect(() => {
-    const db = localStorage.getItem('gonggam_members_db');
-    if (!db) {
-      localStorage.setItem('gonggam_members_db', JSON.stringify(SYSTEM_INITIAL_MEMBERS));
-    } else {
-      try {
-        const parsed = JSON.parse(db);
-        const hasAdmin = parsed.some((m: any) => m.role === '관리자');
-        if (!hasAdmin) {
-          const newAdmin: Member = {
-            id: 'mem_admin',
-            email: 'admin',
-            password: 'admin',
-            name: '대표관리자 주명훈',
-            birthDate: '1981-12-05',
-            role: '관리자',
-            certificate: '사회복지사 1급, 평생교육사 1급',
-            signUpDate: '2026-06-01'
-          };
-          parsed.push(newAdmin);
-          localStorage.setItem('gonggam_members_db', JSON.stringify(parsed));
-        }
-      } catch (e) {
-        localStorage.setItem('gonggam_members_db', JSON.stringify(SYSTEM_INITIAL_MEMBERS));
-      }
-    }
-  }, []);
-
   if (!isOpen) return null;
 
   const getMembersDb = (): Member[] => {
@@ -137,44 +63,21 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess }: AuthModal
     e.preventDefault();
     setLoginError('');
 
-    const emailInput = loginEmail.trim();
+const emailInput = loginEmail.trim();
 
-    if (emailInput === 'admin' && loginPassword === 'admin') {
-      setNeedsAdminPasswordChange(true);
-      return;
-    }
-
-    try {
-      const user = await login(emailInput, loginPassword);
-      onLoginSuccess({ name: user.name, role: user.role });
-      onClose();
-    } catch (err: any) {
-      // Firebase 인증 실패 시 로컬 DB 백업 체크 (데모/테스트 편의성 제공)
-      const db = getMembersDb();
-      const matched = db.find(m => m.email === emailInput && m.password === loginPassword);
-      if (matched) {
-        onLoginSuccess({ name: matched.name, role: matched.role });
-        onClose();
-      } else {
-        setLoginError(err.message || '아이디(이메일) 또는 비밀번호가 올바르지 않습니다.');
-      }
-    }
+try {
+  const user = await login(emailInput, loginPassword);
+  if (user) {
+    onLoginSuccess({ name: user.name, role: user.role });
+    onClose();
+  } else {
+    setLoginError('회원 정보를 찾을 수 없습니다.');
+  }
+} catch (err: any) {
+  setLoginError(err.message || '아이디(이메일) 또는 비밀번호가 올바르지 않습니다.');
+}
   };
 
-  const handleAdminPasswordChangeSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newAdminPassword) {
-      alert('새로운 비밀번호를 입력해 주세요.');
-      return;
-    }
-    if (newAdminPassword === 'admin') {
-      alert('기본값인 "admin"은 보안상 위험하여 사용할 수 없습니다. 다른 비밀번호를 지정해 주세요.');
-      return;
-    }
-    if (newAdminPassword !== confirmAdminPassword) {
-      alert('비밀번호가 일치하지 않습니다. 다시 한번 확인해 주세요.');
-      return;
-    }
 
     const db = getMembersDb();
     const updated = db.map(m => {
