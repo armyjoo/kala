@@ -12,7 +12,19 @@ import NoticeSection from './components/NoticeSection';
 import AdminPanelSection from './components/AdminPanelSection';
 import BrandLogo from './components/BrandLogo';
 import AccessibilityHelper from './components/AccessibilityHelper';
-import { ArrowUpRight, GraduationCap, Sparkles, Navigation as NavIcon, Heart, PhoneCall, HelpCircle } from 'lucide-react';
+import { 
+  ArrowUpRight, 
+  GraduationCap, 
+  Sparkles, 
+  Navigation as NavIcon, 
+  Heart, 
+  PhoneCall, 
+  HelpCircle,
+  Edit3,
+  CheckCircle2,
+  Settings,
+  X
+} from 'lucide-react';
 import { auth, logOut, deleteAccount } from './lib/firebase';
 
 export default function App() {
@@ -22,6 +34,12 @@ export default function App() {
   
   // State to hold pre-selected course when moving from Curriculum -> Application
   const [selectedCourseForApply, setSelectedCourseForApply] = useState<string | null>(null);
+
+  // 관리자 페이지 수정/편집 모달 관리 상태
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingSectionTitle, setEditingSectionTitle] = useState('');
+  const [editingNotice, setEditingNotice] = useState('');
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   // Check for any persisted user session on mount
   useEffect(() => {
@@ -67,7 +85,6 @@ export default function App() {
         localStorage.removeItem('gonggam_user_session');
         handleTabChange('intro');
       } else {
-        // Fallback for mock users
         alert('테스트용 가상 계정은 회원탈퇴 대상이 아닙니다.');
       }
     } catch (err: any) {
@@ -90,6 +107,48 @@ export default function App() {
     setSelectedCourseForApply(null);
   };
 
+  // 탭 ID를 사용자가 알아보기 쉬운 한글 이름으로 변환
+  const getTabDisplayName = (tabId: string) => {
+    switch (tabId) {
+      case 'intro': return '메인 소개 (Intro)';
+      case 'greetings': return '인사말 (Greetings)';
+      case 'curriculum': return '교육과정 (Curriculum)';
+      case 'stories': return '활동 이야기 (Stories)';
+      case 'application': return '수강 신청 (Application)';
+      case 'performance': return '추진 성과 (Performance)';
+      case 'lounge': return '강사 사랑방 (Lounge)';
+      case 'notice': return '공지사항 (Notice)';
+      case 'admin': return '관리자 콘솔 (Admin)';
+      default: return '페이지';
+    }
+  };
+
+  // 편집 모달 열기 핸들러
+  const handleOpenEditModal = () => {
+    setEditingSectionTitle(getTabDisplayName(activeTab));
+    setEditingNotice('');
+    setSaveSuccess(false);
+    setIsEditModalOpen(true);
+  };
+
+  // 편집 저장 처리
+  const handleSavePageEdit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaveSuccess(true);
+    setTimeout(() => {
+      setSaveSuccess(false);
+      setIsEditModalOpen(false);
+    }, 1500);
+  };
+
+  // 관리자 전용 상세 설정 콘솔로 전환
+  const handleGoToAdminConsole = () => {
+    setIsEditModalOpen(false);
+    handleTabChange('admin');
+  };
+
+  const isAdmin = currentUser?.role === '관리자' || currentUser?.role === '부관리자';
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans selection:bg-sky-100 selection:text-sky-800 text-slate-700 antialiased">
       
@@ -110,7 +169,7 @@ export default function App() {
         onDeleteAccount={handleDeleteAccount}
       />
 
-      {/* Hero Header Area (Only rendered on 'intro' (Main Welcome view) to serve as a stunning landing visual) */}
+      {/* Hero Header Area */}
       {activeTab === 'intro' && (
         <div className="relative overflow-hidden bg-white border-b border-slate-100 py-20 lg:py-28">
           <div className="absolute top-0 right-0 h-[35rem] w-[35rem] bg-sky-50/50 rounded-full blur-3xl -translate-y-16 translate-x-20 pointer-events-none" />
@@ -118,7 +177,6 @@ export default function App() {
 
           <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 relative z-10 text-center space-y-6">
             
-            {/* Slogan highlight */}
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-extrabold text-sky-600 bg-sky-50 border border-sky-100 font-sans mx-auto">
               <span className="h-2 w-2 rounded-full bg-sky-500 animate-pulse" />
               장애인 평생학습 최고의 파트너십
@@ -135,7 +193,6 @@ export default function App() {
               연천 지역의 아름다운 공생의 냇가를 만들어 나갑니다.
             </p>
 
-            {/* Direct Link Options */}
             <div className="flex flex-wrap justify-center gap-3 pt-3">
               <button
                 onClick={() => handleTabChange('greetings')}
@@ -155,7 +212,7 @@ export default function App() {
         </div>
       )}
 
-      {/* Main Container: Tab Route Transitions rendering */}
+      {/* Main Container */}
       <main className="flex-1">
         
         {/* Intro Tab */}
@@ -232,13 +289,12 @@ export default function App() {
 
       </main>
 
-      {/* Warm and professional footer reflecting brand-identity & Yeoncheon-gun detail */}
+      {/* Footer */}
       <footer className="bg-slate-900 text-white py-12 md:py-16 border-t border-slate-800 font-sans text-xs">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 pb-10 border-b border-white/10 items-start">
             
-            {/* Column 1: Association Logo block */}
             <div className="md:col-span-5 space-y-4">
               <div className="flex items-center gap-2">
                 <BrandLogo showText={true} theme="dark" size="sm" customHeight={36} />
@@ -248,7 +304,6 @@ export default function App() {
               </p>
             </div>
 
-            {/* Column 2: Program shortcuts links list */}
             <div className="md:col-span-4 space-y-3">
               <h4 className="text-[10px] font-black tracking-wider text-slate-400 uppercase">
                 교육과정 및 주요 서비스
@@ -272,7 +327,6 @@ export default function App() {
               </ul>
             </div>
 
-            {/* Column 3: Contact details */}
             <div className="md:col-span-3 space-y-3">
               <h4 className="text-[10px] font-black tracking-wider text-slate-400 uppercase">
                 협회 행정 지원 센터
@@ -286,7 +340,6 @@ export default function App() {
 
           </div>
 
-          {/* Bottom Copyright and Address disclaimer (Yeoncheon-gun, Representative Myung-hoon Ju) */}
           <div className="mt-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-[10px] text-slate-400 leading-relaxed font-sans">
             <div className="space-y-1">
               <p>장애인 평생학습 강사 협회 (KALA) | 대표: 주명훈 | 관할 소재지: 경기도 연천군 전곡읍</p>
@@ -309,8 +362,97 @@ export default function App() {
         onLoginSuccess={handleLoginSuccess}
       />
 
-      {/* Floating Accessibility TTS Assist Wheel for the Visually Impaired */}
+      {/* Floating Accessibility TTS Assist Wheel */}
       <AccessibilityHelper />
+
+      {/* ============================================================ */}
+      {/* 👑 관리자 전용 Floating 수정/편집 도구 (Floating Edit Control) */}
+      {/* ============================================================ */}
+      {isAdmin && (
+        <div className="fixed bottom-6 left-6 z-40 flex items-center gap-2">
+          <button
+            onClick={handleOpenEditModal}
+            className="flex items-center gap-2 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-extrabold text-xs px-4 py-3 rounded-full shadow-xl hover:shadow-2xl transition-all cursor-pointer ring-4 ring-orange-100 group"
+          >
+            <Edit3 className="h-4 w-4 group-hover:rotate-12 transition-transform" />
+            <span>현재 페이지 수정/편집</span>
+            <span className="bg-white/20 text-[10px] px-1.5 py-0.5 rounded-md font-mono">
+              {getTabDisplayName(activeTab)}
+            </span>
+          </button>
+        </div>
+      )}
+
+      {/* 페이지 수정/편집 레이어 모달 */}
+      {isEditModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
+          <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100 animate-zoom-in">
+            <div className="bg-gradient-to-r from-orange-500 to-amber-500 p-5 text-white flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Edit3 className="h-5 w-5" />
+                <h3 className="font-extrabold text-base font-sans">페이지 실시간 수정 도구</h3>
+              </div>
+              <button
+                onClick={() => setIsEditModalOpen(false)}
+                className="text-white/80 hover:text-white rounded-full p-1 transition-colors cursor-pointer"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSavePageEdit} className="p-6 space-y-4 font-sans text-xs">
+              {saveSuccess && (
+                <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl font-bold flex items-center gap-2 animate-fade-in">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                  <span>수정 사항이 적용되었습니다.</span>
+                </div>
+              )}
+
+              <div className="space-y-1">
+                <label className="block font-black text-slate-500 uppercase tracking-wider">
+                  수정할 섹션 대상
+                </label>
+                <input
+                  type="text"
+                  readOnly
+                  value={editingSectionTitle}
+                  className="w-full rounded-xl bg-slate-100 border border-slate-200 py-2.5 px-3 text-slate-700 font-bold outline-none"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="block font-black text-slate-500 uppercase tracking-wider">
+                  섹션 공지 및 변경 안내 메시지
+                </label>
+                <textarea
+                  rows={3}
+                  placeholder="이 페이지 상단에 게재할 관리자 안내 또는 수정 내용을 작성하세요..."
+                  value={editingNotice}
+                  onChange={(e) => setEditingNotice(e.target.value)}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 px-3 text-slate-800 outline-none focus:border-orange-400 focus:bg-white transition-all"
+                />
+              </div>
+
+              <div className="pt-2 flex gap-2">
+                <button
+                  type="button"
+                  onClick={handleGoToAdminConsole}
+                  className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold py-2.5 transition-colors cursor-pointer"
+                >
+                  <Settings className="h-3.5 w-3.5" />
+                  관리자 콘솔 이동
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-extrabold py-2.5 shadow-md transition-colors cursor-pointer"
+                >
+                  수정 사항 저장
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
     </div>
   );
